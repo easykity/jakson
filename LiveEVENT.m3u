@@ -1,17 +1,9 @@
 #EXTM3U
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2478.png" group-title="Football", Uzbekistan U17 vs Jamaica U17 HD
-https://live200.kravonstreamdelivery.com/live/channel18.m3u8
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2479.png" group-title="Football", Senegal U17 vs Cuba U17 HD
-https://live200.kravonstreamdelivery.com/live/channel22.m3u8
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2521.png" group-title="Football", Neftchi Fergana vs Al-Hilal PlayZ TV Live
-https://live.vivo155.com/live/sd-1-4621432.m3u8?txSecret=9fc7bbfcc6cecba977713cc2f646431c&txTime=6B04563E
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2521.png" group-title="Football", Neftchi Fergana vs Al-Hilal TAPMAD FHD
-https://multiregion-asia-cdn.tapmad.com/v1/01a1548c4faf15fc600b1e3e968408/01a1548c7fde1ea557841e1612cf76/main.m3u8?
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2521.png" group-title="Football", Neftchi Fergana vs Al-Hilal HD QUALITY
-https://live2.jorvakstreamcache.com/live/channel15.m3u8?
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2481.png" group-title="Football", Morocco U17 vs China U17 HD
-https://live200.kravonstreamdelivery.com/live/channel16.m3u8
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2482.png" group-title="Football", Mali U17 vs Belgium U17 HD
 https://live200.kravonstreamdelivery.com/live/channel19.m3u8
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2483.png" group-title="Football", Vietnam U17 vs New Zealand U17 HD
 https://live200.kravonstreamdelivery.com/live/channel2.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2523.png" group-title="Football", Al Shamal SC vs Al-Ahli TAPMAD - AQ
+https://multiregion-asia-cdn.tapmad.com/v1/01a1548c4faf15fc600b1e3e968408/01a1548c7fde1ea557841e1612cf76/main.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2524.png" group-title="Football", Tractor FC vs Al Wasl TAPMAD - AQ
+https://multiregion-asia-cdn.tapmad.com/v1/01a154a641d51567ee931e109fa59f/01a154a676281ea557841e1612cf77/main.m3u8
