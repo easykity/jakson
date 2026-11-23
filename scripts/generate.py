@@ -17,7 +17,7 @@ JSON_URL = (os.environ.get("KSA_SERVER1") or "").strip()
 ASSET_DIR = "ASSET"
 POSTERS_DIR = "posters"
 PLAYLIST_FILE = "LiveEVENT.m3u"
-TEMPLATE_VERSION = "v2"  # ডিজাইন বদলালে এটি বদলালে সব পোস্টার নতুন করে তৈরি হবে
+TEMPLATE_VERSION = "v3"  # ডিজাইন আপডেট হলে ভার্সন বদলালে সব পোস্টার নতুন করে তৈরি হবে
 
 # পোস্টারের সাইজ
 POSTER_WIDTH = 1280
@@ -81,7 +81,7 @@ def load_font(font_path, size):
     return ImageFont.load_default()
 
 
-def fit_font_to_width(draw, text, font_path, start_size, max_width, stroke_width=5):
+def fit_font_to_width(draw, text, font_path, start_size, max_width, stroke_width=3):
     size = start_size
     while size > 20:
         font = load_font(font_path, size)
@@ -97,7 +97,6 @@ def download_image(url):
     if not url:
         return None
 
-    # ধাপ ১: curl_cffi দিয়ে Chrome ব্রাউজার হিসেবে ডাউনলোডের চেষ্টা
     if HAS_CURL_CFFI:
         try:
             resp = cf_requests.get(
@@ -108,12 +107,9 @@ def download_image(url):
             )
             if resp.status_code == 200 and resp.content:
                 return Image.open(BytesIO(resp.content)).convert("RGBA")
-            else:
-                print(f"curl_cffi স্ট্যাটাস {resp.status_code} ({url})")
         except Exception as e:
             print(f"curl_cffi ব্যর্থ ({url}): {e}")
 
-    # ধাপ ২: সাধারণ requests দিয়ে চেষ্টা
     try:
         resp = requests.get(
             url,
@@ -122,29 +118,35 @@ def download_image(url):
         )
         if resp.status_code == 200 and resp.content:
             return Image.open(BytesIO(resp.content)).convert("RGBA")
-        else:
-            print(f"requests স্ট্যাটাস {resp.status_code} ({url})")
     except Exception as e:
         print(f"requests ব্যর্থ ({url}): {e}")
 
-    # ধাপ ৩: wsrv.nl ইমেজ প্রক্সি ব্যাকআপ
     try:
         proxy_url = f"https://wsrv.nl/?url={quote(url, safe='')}&output=png"
         resp = requests.get(proxy_url, headers=BROWSER_HEADERS, timeout=20)
         if resp.status_code == 200 and resp.content:
-            print(f"প্রক্সি দিয়ে ইমেজ ডাউনলোড সফল: {url}")
             return Image.open(BytesIO(resp.content)).convert("RGBA")
-        else:
-            print(f"প্রক্সি স্ট্যাটাস {resp.status_code} ({url})")
     except Exception as e:
         print(f"প্রক্সি ব্যর্থ ({url}): {e}")
 
     return None
 
 
-def scale_to_fit(img, target_w, target_h):
+def crop_transparent(img):
+    """লোগোর চারপাশের বাড়তি স্বচ্ছ ফাঁকা অংশ কেটে মূল অরিজিনাল অনুপাত ধরে রাখে"""
     if img is None:
         return None
+    bbox = img.getbbox()
+    if bbox:
+        return img.crop(bbox)
+    return img
+
+
+def scale_to_fit(img, target_w, target_h):
+    """অরিজিনাল অনুপাত (16:9 বা 1:1) ঠিক রেখে লোগোকে সুন্দরভাবে বড়/ছোট করে"""
+    if img is None:
+        return None
+    img = crop_transparent(img)
     w, h = img.size
     if w == 0 or h == 0:
         return None
@@ -154,10 +156,10 @@ def scale_to_fit(img, target_w, target_h):
     return img.resize((new_w, new_h), Image.Resampling.LANCZOS)
 
 
-def draw_centered_text(draw, text, y, font, fill="white", stroke_fill="black", stroke_width=6):
+def draw_text_centered_at(draw, text, center_x, y, font, fill="white", stroke_fill="black", stroke_width=3):
     bbox = draw.textbbox((0, 0), text, font=font, stroke_width=stroke_width)
     text_w = bbox[2] - bbox[0]
-    x = (POSTER_WIDTH - text_w) // 2
+    x = center_x - (text_w // 2)
     draw.text((x, y), text, font=font, fill=fill, stroke_width=stroke_width, stroke_fill=stroke_fill)
 
 
@@ -174,66 +176,89 @@ def is_match_active(match):
         return True
 
 
+def get_match_category(match):
+    event = match.get("event") or {}
+    cat = event.get("category") or match.get("category") or match.get("cat") or "Sports"
+    return str(cat).strip()
+
+
 def create_poster(match, bg_path, font_path, output_path):
     bg = Image.open(bg_path).convert("RGBA")
     bg = ImageOps.fit(bg, (POSTER_WIDTH, POSTER_HEIGHT), Image.Resampling.LANCZOS)
 
     event = match.get("event") or {}
     tourney_name = (event.get("name") or "").strip().upper()
-    match_title = (match.get("title") or "").strip().upper()
+    team_a_name = (event.get("teamA") or "").strip().upper()
+    team_b_name = (event.get("teamB") or "").strip().upper()
 
+    # ২. টুর্নামেন্টের logo আগের চেয়ে বড় সাইজ
     tourney_logo = scale_to_fit(
         download_image(event.get("logo")),
-        int(POSTER_WIDTH * 0.13),
-        int(POSTER_HEIGHT * 0.16),
+        int(POSTER_WIDTH * 0.20),
+        int(POSTER_HEIGHT * 0.19),
     )
+
+    # ১. TeamA ও TeamB এর লোগো আরও বড় (16:9 বা 1:1 অরিজিনাল অনুপাতে থাকবে)
     team_a_flag = scale_to_fit(
         download_image(event.get("teamAFlag")),
-        int(POSTER_WIDTH * 0.28),
-        int(POSTER_HEIGHT * 0.36),
+        int(POSTER_WIDTH * 0.34),
+        int(POSTER_HEIGHT * 0.42),
     )
     team_b_flag = scale_to_fit(
         download_image(event.get("teamBFlag")),
-        int(POSTER_WIDTH * 0.28),
-        int(POSTER_HEIGHT * 0.36),
+        int(POSTER_WIDTH * 0.34),
+        int(POSTER_HEIGHT * 0.42),
     )
 
     draw = ImageDraw.Draw(bg)
-    max_text_width = int(POSTER_WIDTH * 0.92)
 
-    # ১. উপরে মাঝে টুর্নামেন্টের নাম
+    # ৪. উপরে টুর্নামেন্টের নাম (আরও বড় ও চিকন আউটলাইন)
     if tourney_name:
-        font_tourney = fit_font_to_width(draw, tourney_name, font_path, int(POSTER_HEIGHT * 0.062), max_text_width, stroke_width=5)
-        draw_centered_text(draw, tourney_name, int(POSTER_HEIGHT * 0.045), font_tourney, stroke_width=5)
+        font_tourney = fit_font_to_width(
+            draw, tourney_name, font_path,
+            int(POSTER_HEIGHT * 0.082), int(POSTER_WIDTH * 0.92), stroke_width=3
+        )
+        draw_text_centered_at(draw, tourney_name, POSTER_WIDTH // 2, int(POSTER_HEIGHT * 0.032), font_tourney, stroke_width=3)
 
-    # ২. নামের নিচে মাঝে টুর্নামেন্টের লোগো
+    # টুর্নামেন্টের লোগো মাঝে
     if tourney_logo:
         lx = (POSTER_WIDTH - tourney_logo.width) // 2
-        ly = int(POSTER_HEIGHT * 0.145)
+        ly = int(POSTER_HEIGHT * 0.135)
         bg.paste(tourney_logo, (lx, ly), tourney_logo)
 
-    # ৩. মাঝে বাম পাশে Team A, মাঝখানে VS, ডান পাশে Team B
-    center_y = int(POSTER_HEIGHT * 0.48)
+    # দুই দলের লোগো ও টেক্সটের কেন্দ্রবিন্দু
+    left_center_x = int(POSTER_WIDTH * 0.23)
+    right_center_x = int(POSTER_WIDTH * 0.77)
+    logo_center_y = int(POSTER_HEIGHT * 0.52)
 
     if team_a_flag:
-        ax = int(POSTER_WIDTH * 0.23) - (team_a_flag.width // 2)
-        ay = center_y - (team_a_flag.height // 2)
+        ax = left_center_x - (team_a_flag.width // 2)
+        ay = logo_center_y - (team_a_flag.height // 2)
         bg.paste(team_a_flag, (ax, ay), team_a_flag)
 
     if team_b_flag:
-        bx = int(POSTER_WIDTH * 0.77) - (team_b_flag.width // 2)
-        by = center_y - (team_b_flag.height // 2)
+        bx = right_center_x - (team_b_flag.width // 2)
+        by = logo_center_y - (team_b_flag.height // 2)
         bg.paste(team_b_flag, (bx, by), team_b_flag)
 
+    # মাঝখানে VS (চিকন আউটলাইনসহ)
     font_vs = load_font(font_path, int(POSTER_HEIGHT * 0.095))
-    vs_bbox = draw.textbbox((0, 0), "VS", font=font_vs, stroke_width=6)
+    vs_bbox = draw.textbbox((0, 0), "VS", font=font_vs, stroke_width=3)
     vs_h = vs_bbox[3] - vs_bbox[1]
-    draw_centered_text(draw, "VS", int(POSTER_HEIGHT * 0.53) - (vs_h // 2), font_vs, fill="#FFD700", stroke_width=6)
+    draw_text_centered_at(draw, "VS", POSTER_WIDTH // 2, logo_center_y - (vs_h // 2), font_vs, fill="#FFD700", stroke_width=3)
 
-    # ৪. নিচে দুই দলের নাম (বড় ও বোল্ড সাইজ)
-    if match_title:
-        font_title = fit_font_to_width(draw, match_title, font_path, int(POSTER_HEIGHT * 0.10), max_text_width, stroke_width=7)
-        draw_centered_text(draw, match_title, int(POSTER_HEIGHT * 0.78), font_title, stroke_width=7)
+    # ৩. নিচে সরাসরি TeamA ও TeamB নাম (VS ছাড়া, নিজ নিজ লোগো বরাবর সেন্টার, বড় ফন্ট ও চিকন বর্ডার)
+    team_name_y = int(POSTER_HEIGHT * 0.785)
+    team_max_w = int(POSTER_WIDTH * 0.42)
+    team_start_size = int(POSTER_HEIGHT * 0.092)
+
+    if team_a_name:
+        font_a = fit_font_to_width(draw, team_a_name, font_path, team_start_size, team_max_w, stroke_width=3)
+        draw_text_centered_at(draw, team_a_name, left_center_x, team_name_y, font_a, stroke_width=3)
+
+    if team_b_name:
+        font_b = fit_font_to_width(draw, team_b_name, font_path, team_start_size, team_max_w, stroke_width=3)
+        draw_text_centered_at(draw, team_b_name, right_center_x, team_name_y, font_b, stroke_width=3)
 
     bg.convert("RGB").save(output_path, "PNG", optimize=True)
     print(f"পোস্টার তৈরি হয়েছে: {output_path}")
@@ -262,8 +287,7 @@ def main():
         with open(version_file, "r", encoding="utf-8") as f:
             current_version = f.read().strip()
 
-    force_rebuild = (current_version != TEMPLATE_VERSION)
-    if force_rebuild:
+    if current_version != TEMPLATE_VERSION:
         print("নতুন টেমপ্লেট ভার্সন পাওয়া গেছে—সব পোস্টার নতুন করে তৈরি হবে...")
         for f_name in os.listdir(POSTERS_DIR):
             f_path = os.path.join(POSTERS_DIR, f_name)
@@ -296,9 +320,10 @@ def main():
                 os.remove(old_path)
                 print(f"পুরোনো পোস্টার ডিলিট করা হয়েছে: {old_path}")
 
+    # ৫. category বা cat যেকোনোটি থেকেই ক্যাটাগরি নিয়ে সর্টিং
     sorted_matches = sorted(
         active_matches,
-        key=lambda m: category_priority((m.get("event") or {}).get("category") or m.get("cat") or "Other")
+        key=lambda m: category_priority(get_match_category(m))
     )
 
     m3u_lines = ["#EXTM3U"]
@@ -309,7 +334,7 @@ def main():
 
         match_id = m.get("id")
         match_title = (m.get("title") or "").strip()
-        category = ((m.get("event") or {}).get("category") or m.get("cat") or "Sports").strip()
+        category = get_match_category(m)
         poster_url = f"{RAW_BASE_URL}/{match_id}.png"
 
         for s in streams:
