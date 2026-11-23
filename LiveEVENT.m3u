@@ -1,25 +1,17 @@
 #EXTM3U
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2476.png" group-title="Football", Spain U17 vs Fiji U17 FOX SPORTS - AQ
-#KODIPROP:inputstream=inputstream.adaptive
-#KODIPROP:inputstream.adaptive.manifest_type=mpd
-#KODIPROP:inputstream.adaptive.license_type=clearkey
-#KODIPROP:inputstream.adaptive.license_key=09453ce820d65fbc675de3185f9e454c:98cff9600995fa381c76fdacf3c7edae
-https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/awxnrqkbo5/out/v1/716529a4091947b0877e6cb80dbd6ccb/cenc.mpd
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2476.png" group-title="Football", Spain U17 vs Fiji U17 D SPORTS ES - AQ
-#KODIPROP:inputstream=inputstream.adaptive
-#KODIPROP:inputstream.adaptive.manifest_type=mpd
-#KODIPROP:inputstream.adaptive.license_type=clearkey
-#KODIPROP:inputstream.adaptive.license_key=f836853d8eac19446ed9535f5fc568b1:b3bc5ef00602b29abac7e482d3d9fbf3
-https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/dash/enc/z5oyxzsxdk/out/v1/7695a0f64a0e424b973d5b09a2a3eb91/cenc.mpd
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2476.png" group-title="Football", Spain U17 vs Fiji U17 TUDN MEXICO FHD
-#KODIPROP:inputstream=inputstream.adaptive
-#KODIPROP:inputstream.adaptive.manifest_type=mpd
-#KODIPROP:inputstream.adaptive.license_type=clearkey
-#KODIPROP:inputstream.adaptive.license_key=763ce1ebcaf23502c8cf357c6ef423e1:0c5e6c0820a1ea28753721db00272411
-https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/o2vy4aahsh/out/v1/e293c932745a44dcaf897573dfc53532/cenc.mpd
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2477.png" group-title="Football", Tajikistan U17 vs Croatia U17 HD STREAM
-https://live200.kravonstreamdelivery.com/live/channel11.m3u8
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2478.png" group-title="Football", Uzbekistan U17 vs Jamaica U17 HD
 https://live200.kravonstreamdelivery.com/live/channel18.m3u8
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2479.png" group-title="Football", Senegal U17 vs Cuba U17 HD
 https://live200.kravonstreamdelivery.com/live/channel22.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2521.png" group-title="Football", Neftchi Fergana vs Al-Hilal PlayZ TV Live
+https://live.vivo155.com/live/sd-1-4621432.m3u8?txSecret=9fc7bbfcc6cecba977713cc2f646431c&txTime=6B04563E
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2521.png" group-title="Football", Neftchi Fergana vs Al-Hilal TAPMAD FHD
+https://multiregion-asia-cdn.tapmad.com/v1/01a1548c4faf15fc600b1e3e968408/01a1548c7fde1ea557841e1612cf76/main.m3u8?
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2521.png" group-title="Football", Neftchi Fergana vs Al-Hilal HD QUALITY
+https://live2.jorvakstreamcache.com/live/channel15.m3u8?
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2481.png" group-title="Football", Morocco U17 vs China U17 HD
+https://live200.kravonstreamdelivery.com/live/channel16.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2482.png" group-title="Football", Mali U17 vs Belgium U17 HD
+https://live200.kravonstreamdelivery.com/live/channel19.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2483.png" group-title="Football", Vietnam U17 vs New Zealand U17 HD
+https://live200.kravonstreamdelivery.com/live/channel2.m3u8
