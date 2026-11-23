@@ -13,7 +13,7 @@ except ImportError:
     HAS_CURL_CFFI = False
 
 # ---------------- কনফিগারেশন ----------------
-JSON_URL = os.environ.get("KSA_SERVER1", "").strip()
+JSON_URL = (os.environ.get("KSA_SERVER1") or "").strip()
 ASSET_DIR = "ASSET"
 POSTERS_DIR = "posters"
 PLAYLIST_FILE = "LiveEVENT.m3u"
@@ -97,7 +97,7 @@ def download_image(url):
     if not url:
         return None
 
-    # ধাপ ১: curl_cffi দিয়ে Chrome ব্রাউজার হিসেবে ডাউনলোডের চেষ্টা (Cloudflare বাইপাস)
+    # ধাপ ১: curl_cffi দিয়ে Chrome ব্রাউজার হিসেবে ডাউনলোডের চেষ্টা
     if HAS_CURL_CFFI:
         try:
             resp = cf_requests.get(
@@ -127,7 +127,7 @@ def download_image(url):
     except Exception as e:
         print(f"requests ব্যর্থ ({url}): {e}")
 
-    # ধাপ ৩: wsrv.nl ইমেজ প্রক্সি ব্যাকআপ (যদি সরাসরি ব্লক করে বা SVG/WebP হয়)
+    # ধাপ ৩: wsrv.nl ইমেজ প্রক্সি ব্যাকআপ
     try:
         proxy_url = f"https://wsrv.nl/?url={quote(url, safe='')}&output=png"
         resp = requests.get(proxy_url, headers=BROWSER_HEADERS, timeout=20)
@@ -143,7 +143,6 @@ def download_image(url):
 
 
 def scale_to_fit(img, target_w, target_h):
-    """ছোট বা বড় যেকোনো লোগোকে সুন্দরভাবে বক্সের সাইজে ফিট করবে"""
     if img is None:
         return None
     w, h = img.size
@@ -163,7 +162,7 @@ def draw_centered_text(draw, text, y, font, fill="white", stroke_fill="black", s
 
 
 def is_match_active(match):
-    event = match.get("event", {})
+    event = match.get("event") or {}
     end_utc_str = event.get("endTimeUTC")
     if not end_utc_str:
         return True
@@ -179,11 +178,10 @@ def create_poster(match, bg_path, font_path, output_path):
     bg = Image.open(bg_path).convert("RGBA")
     bg = ImageOps.fit(bg, (POSTER_WIDTH, POSTER_HEIGHT), Image.Resampling.LANCZOS)
 
-    event = match.get("event", {})
-    tourney_name = event.get("name", "").strip().upper()
-    match_title = match.get("title", "").strip().upper()
+    event = match.get("event") or {}
+    tourney_name = (event.get("name") or "").strip().upper()
+    match_title = (match.get("title") or "").strip().upper()
 
-    # লোগোগুলো ডাউনলোড ও আপনার দেওয়া মাপ অনুযায়ী বড় করা
     tourney_logo = scale_to_fit(
         download_image(event.get("logo")),
         int(POSTER_WIDTH * 0.13),
@@ -203,18 +201,18 @@ def create_poster(match, bg_path, font_path, output_path):
     draw = ImageDraw.Draw(bg)
     max_text_width = int(POSTER_WIDTH * 0.92)
 
-    # ১. উপরে মাঝে টুর্নামেন্টের নাম (U17 WORLD CHAMPIONSHIP)
+    # ১. উপরে মাঝে টুর্নামেন্টের নাম
     if tourney_name:
         font_tourney = fit_font_to_width(draw, tourney_name, font_path, int(POSTER_HEIGHT * 0.062), max_text_width, stroke_width=5)
         draw_centered_text(draw, tourney_name, int(POSTER_HEIGHT * 0.045), font_tourney, stroke_width=5)
 
-    # ২. নামের ঠিক নিচে মাঝখানে টুর্নামেন্টের লোগো (LOGO IMAGE)
+    # ২. নামের নিচে মাঝে টুর্নামেন্টের লোগো
     if tourney_logo:
         lx = (POSTER_WIDTH - tourney_logo.width) // 2
         ly = int(POSTER_HEIGHT * 0.145)
         bg.paste(tourney_logo, (lx, ly), tourney_logo)
 
-    # ৩. মাঝে বাম পাশে Team A, মাঝখানে VS, ডান পাশে Team B (আপনার ছবির মাপ অনুযায়ী)
+    # ৩. মাঝে বাম পাশে Team A, মাঝখানে VS, ডান পাশে Team B
     center_y = int(POSTER_HEIGHT * 0.48)
 
     if team_a_flag:
@@ -227,13 +225,12 @@ def create_poster(match, bg_path, font_path, output_path):
         by = center_y - (team_b_flag.height // 2)
         bg.paste(team_b_flag, (bx, by), team_b_flag)
 
-    # VS টেক্সট মাঝখানে
     font_vs = load_font(font_path, int(POSTER_HEIGHT * 0.095))
     vs_bbox = draw.textbbox((0, 0), "VS", font=font_vs, stroke_width=6)
     vs_h = vs_bbox[3] - vs_bbox[1]
     draw_centered_text(draw, "VS", int(POSTER_HEIGHT * 0.53) - (vs_h // 2), font_vs, fill="#FFD700", stroke_width=6)
 
-    # ৪. নিচে দুই দলের নাম (আরও বড় ও বোল্ড সাইজে)
+    # ৪. নিচে দুই দলের নাম (বড় ও বোল্ড সাইজ)
     if match_title:
         font_title = fit_font_to_width(draw, match_title, font_path, int(POSTER_HEIGHT * 0.10), max_text_width, stroke_width=7)
         draw_centered_text(draw, match_title, int(POSTER_HEIGHT * 0.78), font_title, stroke_width=7)
@@ -243,7 +240,7 @@ def create_poster(match, bg_path, font_path, output_path):
 
 
 def category_priority(cat_name):
-    c = cat_name.strip().lower()
+    c = (cat_name or "Other").strip().lower()
     if c == "football":
         return (0, c)
     elif c == "cricket":
@@ -259,7 +256,6 @@ def main():
     bg_path = get_background_path()
     font_path = ensure_google_font()
 
-    # ডিজাইন আপডেট হলে পুরোনো পোস্টার মুছে নতুন করে বানানোর জন্য ভার্সন চেক
     version_file = os.path.join(POSTERS_DIR, ".poster_version")
     current_version = ""
     if os.path.exists(version_file):
@@ -293,7 +289,6 @@ def main():
         if not os.path.exists(poster_path):
             create_poster(m, bg_path, font_path, poster_path)
 
-    # খেলা শেষ বা JSON-এ না থাকা পুরোনো পোস্টার ডিলিট করা
     for existing_file in os.listdir(POSTERS_DIR):
         if existing_file not in active_filenames:
             old_path = os.path.join(POSTERS_DIR, existing_file)
@@ -301,10 +296,9 @@ def main():
                 os.remove(old_path)
                 print(f"পুরোনো পোস্টার ডিলিট করা হয়েছে: {old_path}")
 
-    # প্লেলিস্ট সাজানো: Football -> Cricket -> অন্যান্য
     sorted_matches = sorted(
         active_matches,
-        key=lambda m: category_priority(m.get("event", {}).get("category") or m.get("cat") or "Other")
+        key=lambda m: category_priority((m.get("event") or {}).get("category") or m.get("cat") or "Other")
     )
 
     m3u_lines = ["#EXTM3U"]
@@ -314,15 +308,17 @@ def main():
             continue
 
         match_id = m.get("id")
-        match_title = m.get("title", "").strip()
-        category = (m.get("event", {}).get("category") or m.get("cat") or "Sports").strip()
+        match_title = (m.get("title") or "").strip()
+        category = ((m.get("event") or {}).get("category") or m.get("cat") or "Sports").strip()
         poster_url = f"{RAW_BASE_URL}/{match_id}.png"
 
         for s in streams:
-            stream_title = s.get("title", "").strip()
-            stream_type = s.get("type", "").strip().lower()
-            stream_url = s.get("url", "").strip()
-            stream_key = s.get("key", "").strip()
+            if not isinstance(s, dict):
+                continue
+            stream_title = (s.get("title") or "").strip()
+            stream_type = (s.get("type") or "").strip().lower()
+            stream_url = (s.get("url") or "").strip()
+            stream_key = (s.get("key") or "").strip()
 
             if not stream_url:
                 continue
