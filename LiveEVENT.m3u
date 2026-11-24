@@ -1,1 +1,7 @@
 #EXTM3U
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2527.png" group-title="Football", Newcastle Jets vs Kashiwa Reysol TAPMAD - AQ
+https://multiregion-asia-cdn.tapmad.com/v1/01a1548c4faf15fc600b1e3e968408/01a1548c7fde1ea557841e1612cf76/main.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2527.png" group-title="Football", Newcastle Jets vs Kashiwa Reysol HD STREAM
+https://live200.kravonstreamdelivery.com/live/channel5.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2527.png" group-title="Football", Newcastle Jets vs Kashiwa Reysol SD STREAM
+https://www.rtmpcdn.com/live/573a52ae88e2dc0d538ebb7f1fb13c44fead290769efd0dda927462594a842ac.m3u8
