@@ -1,7 +1,21 @@
 #EXTM3U
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2538.png" group-title="Football", Gamba Osaka vs Port FC FANCODE AQ (IND)
-https://in-mc-vod.fancode.com/mumbai/4248759_english_hls_8e543051a454617_1ta-di_h264/index.m3u8
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2539.png" group-title="Football", Kashima Antlers vs Jeonbuk Hyundai Motors SPORTDIGITAL AQ
-https://sdn-global-live-streaming-packager-cache.3qsdn.com/102539/102539_264_live.m3u8
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2539.png" group-title="Football", Kashima Antlers vs Jeonbuk Hyundai Motors FANCODE AQ (IND)
-https://in-mc-vod.fancode.com/mumbai/4248758_english_hls_df11de56b866843_1ta-di_h264/index.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2540.png" group-title="Football", Persib Bandung vs FC Seoul TAPMAD - AQ
+https://multiregion-asia-cdn.tapmad.com/v1/01a1548c4faf15fc600b1e3e968408/01a1548c7fde1ea557841e1612cf76/main.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/2540.png" group-title="Football", Persib Bandung vs FC Seoul FANCODE [IND]
+https://in-mc-vod.fancode.com/mumbai/4249026_english_hls_3445d7439d80501_1ta-di_h264/index.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/3897.png" group-title="Football", Ecuador U17 vs South Korea U17 D SPORTS - AQ
+#KODIPROP:inputstream=inputstream.adaptive
+#KODIPROP:inputstream.adaptive.manifest_type=mpd
+#KODIPROP:inputstream.adaptive.license_type=clearkey
+#KODIPROP:inputstream.adaptive.license_key=03f12d6a3dbfd3a6fa7dd7f6417e0c11:ea07b87acdf2e45be824cde4a1cf3504
+https://otte.live.fly.ww.aiv-cdn.net/gru-nitro/live/clients/dash/enc/rgilyeubta/out/v1/09a67027b18f4fd78aaa3794a2aacfe8/cenc.mpd
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/3897.png" group-title="Football", Ecuador U17 vs South Korea U17 HD STREAM
+https://live3979.zundrixmediapipeline.com/live/channel11.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/3898.png" group-title="Football", Uganda U17 vs New Caledonia U17 HD STREAM
+https://live3979.zundrixmediapipeline.com/live/channel7.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/3871.png" group-title="Football", Sporting U19 vs Manchester United U19 TNT SPORTS - AQ
+#KODIPROP:inputstream=inputstream.adaptive
+#KODIPROP:inputstream.adaptive.manifest_type=mpd
+#KODIPROP:inputstream.adaptive.license_type=clearkey
+#KODIPROP:inputstream.adaptive.license_key=f3df7843080ae743bf865dc5fdf64c68:567c863bc12eb74788ea74888c042e1b
+https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/puehlftk5j/out/v1/f7f0da1ee112481ca0024e6d4dd97f4a/cenc.mpd
