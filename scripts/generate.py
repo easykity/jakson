@@ -1,5 +1,7 @@
 import os
 import glob
+import shutil
+import subprocess
 import requests
 from urllib.parse import quote
 from io import BytesIO
@@ -17,11 +19,11 @@ JSON_URL = (os.environ.get("KSA_SERVER1") or "").strip()
 ASSET_DIR = "ASSET"
 POSTERS_DIR = "posters"
 PLAYLIST_FILE = "LiveEVENT.m3u"
-TEMPLATE_VERSION = "v6"
+TEMPLATE_VERSION = "v7"
 
-# Poster dimensions
-POSTER_WIDTH = 1280
-POSTER_HEIGHT = 720
+# Poster dimensions (16:9)
+POSTER_WIDTH = 800
+POSTER_HEIGHT = 450
 
 # GitHub repository and branch
 GITHUB_REPO = os.environ.get("GITHUB_REPOSITORY", "easykity/jakson")
@@ -81,16 +83,17 @@ def load_font(font_path, size):
     return ImageFont.load_default()
 
 
-def fit_font_to_width(draw, text, font_path, start_size, max_width, stroke_width=3):
+def fit_font_to_width(draw, text, font_path, start_size, max_width, stroke_width=2):
+    min_size = max(12, round(20 * (POSTER_HEIGHT / 720)))
     size = start_size
-    while size > 20:
+    while size > min_size:
         font = load_font(font_path, size)
         bbox = draw.textbbox((0, 0), text, font=font, stroke_width=stroke_width)
         text_w = bbox[2] - bbox[0]
         if text_w <= max_width:
             return font
-        size -= 2
-    return load_font(font_path, 20)
+        size -= 1
+    return load_font(font_path, min_size)
 
 
 def download_image(url):
@@ -154,14 +157,14 @@ def scale_to_fit(img, target_w, target_h):
     return img.resize((new_w, new_h), Image.Resampling.LANCZOS)
 
 
-def draw_text_centered_at(draw, text, center_x, y, font, fill="white", stroke_fill="black", stroke_width=3):
+def draw_text_centered_at(draw, text, center_x, y, font, fill="white", stroke_fill="black", stroke_width=2):
     bbox = draw.textbbox((0, 0), text, font=font, stroke_width=stroke_width)
     text_w = bbox[2] - bbox[0]
     x = center_x - (text_w // 2) - bbox[0]
     draw.text((x, y), text, font=font, fill=fill, stroke_width=stroke_width, stroke_fill=stroke_fill)
 
 
-def draw_text_centered_xy(draw, text, center_x, center_y, font, fill="white", stroke_fill="black", stroke_width=3):
+def draw_text_centered_xy(draw, text, center_x, center_y, font, fill="white", stroke_fill="black", stroke_width=2):
     bbox = draw.textbbox((0, 0), text, font=font, stroke_width=stroke_width)
     text_w = bbox[2] - bbox[0]
     text_h = bbox[3] - bbox[1]
@@ -189,34 +192,71 @@ def get_match_category(match):
     return str(cat).strip()
 
 
+def run_pngquant(input_path, output_path, quality_range):
+    if os.path.exists(output_path):
+        os.remove(output_path)
+    subprocess.run(
+        [
+            "pngquant",
+            "--force",
+            "--output", output_path,
+            f"--quality={quality_range}",
+            "--speed=1",
+            "--",
+            input_path,
+        ],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return os.path.exists(output_path)
+
+
 def save_compressed_png(img, output_path, max_kb=250):
     rgb = img.convert("RGB")
     max_bytes = max_kb * 1024
+    rgb.save(output_path, format="PNG", optimize=True)
 
-    small_rgb = rgb.resize((960, 540), Image.Resampling.LANCZOS)
-    attempts = [
-        (rgb, 256, Image.Dither.NONE),
-        (rgb, 160, Image.Dither.NONE),
-        (small_rgb, 256, Image.Dither.FLOYDSTEINBERG),
-        (small_rgb, 256, Image.Dither.NONE),
-        (small_rgb, 192, Image.Dither.NONE),
-        (small_rgb, 128, Image.Dither.NONE),
-        (small_rgb, 96, Image.Dither.NONE),
-    ]
+    if os.path.getsize(output_path) <= max_bytes:
+        print(f"Poster created: {output_path} ({os.path.getsize(output_path) // 1024} KB)")
+        return
 
-    best_data = None
-    for candidate_img, colors, dither in attempts:
-        q = candidate_img.quantize(colors=colors, method=Image.Quantize.MEDIANCUT, dither=dither)
+    pngquant_bin = shutil.which("pngquant")
+    if pngquant_bin:
+        tmp_out = output_path + ".tmp.png"
+        for q_range in ("80-95", "65-85", "50-75"):
+            if run_pngquant(output_path, tmp_out, q_range):
+                if os.path.getsize(tmp_out) <= max_bytes or q_range == "50-75":
+                    shutil.move(tmp_out, output_path)
+                    if os.path.getsize(output_path) <= max_bytes:
+                        print(f"Poster created: {output_path} ({os.path.getsize(output_path) // 1024} KB)")
+                        return
+                    break
+
+        if os.path.getsize(output_path) > max_bytes:
+            smaller = rgb.resize((640, 360), Image.Resampling.LANCZOS)
+            smaller.save(output_path, format="PNG", optimize=True)
+            if run_pngquant(output_path, tmp_out, "75-92"):
+                shutil.move(tmp_out, output_path)
+
+        if os.path.exists(tmp_out):
+            os.remove(tmp_out)
+
+        print(f"Poster created: {output_path} ({os.path.getsize(output_path) // 1024} KB)")
+        return
+
+    # Pillow fallback with smooth Floyd-Steinberg dithering if pngquant is unavailable
+    for candidate in (rgb, rgb.resize((640, 360), Image.Resampling.LANCZOS)):
+        q = candidate.quantize(colors=256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.FLOYDSTEINBERG)
         buf = BytesIO()
         q.save(buf, format="PNG", optimize=True)
         data = buf.getvalue()
-        best_data = data
+        with open(output_path, "wb") as f:
+            f.write(data)
         if len(data) <= max_bytes:
             break
 
-    with open(output_path, "wb") as f:
-        f.write(best_data)
-    print(f"Poster created: {output_path} ({len(best_data) // 1024} KB)")
+    print(f"Poster created: {output_path} ({os.path.getsize(output_path) // 1024} KB)")
 
 
 def create_poster(match, bg_path, font_path, output_path):
@@ -227,6 +267,10 @@ def create_poster(match, bg_path, font_path, output_path):
     tourney_name = (event.get("name") or "").replace("\n", " ").strip().upper()
     team_a_name = (event.get("teamA") or "").replace("\n", " ").strip().upper()
     team_b_name = (event.get("teamB") or "").replace("\n", " ").strip().upper()
+
+    stroke_w = max(2, round(3 * (POSTER_HEIGHT / 720)))
+    box_radius = max(6, round(14 * (POSTER_HEIGHT / 720)))
+    box_pad = max(16, round(40 * (POSTER_WIDTH / 1280)))
 
     tourney_logo = scale_to_fit(
         download_image(event.get("logo")),
@@ -250,9 +294,9 @@ def create_poster(match, bg_path, font_path, output_path):
     if tourney_name:
         font_tourney = fit_font_to_width(
             draw, tourney_name, font_path,
-            int(POSTER_HEIGHT * 0.095), int(POSTER_WIDTH * 0.94), stroke_width=3
+            int(POSTER_HEIGHT * 0.095), int(POSTER_WIDTH * 0.94), stroke_width=stroke_w
         )
-        draw_text_centered_at(draw, tourney_name, POSTER_WIDTH // 2, int(POSTER_HEIGHT * 0.025), font_tourney, stroke_width=3)
+        draw_text_centered_at(draw, tourney_name, POSTER_WIDTH // 2, int(POSTER_HEIGHT * 0.025), font_tourney, stroke_width=stroke_w)
 
     if tourney_logo:
         lx = (POSTER_WIDTH - tourney_logo.width) // 2
@@ -274,7 +318,7 @@ def create_poster(match, bg_path, font_path, output_path):
         bg.paste(team_b_flag, (bx, by), team_b_flag)
 
     font_vs = load_font(font_path, int(POSTER_HEIGHT * 0.125))
-    draw_text_centered_xy(draw, "VS", POSTER_WIDTH // 2, int(POSTER_HEIGHT * 0.545), font_vs, fill="#FFD700", stroke_width=3)
+    draw_text_centered_xy(draw, "VS", POSTER_WIDTH // 2, int(POSTER_HEIGHT * 0.545), font_vs, fill="#FFD700", stroke_width=stroke_w)
 
     box_w = int(POSTER_WIDTH * 0.43)
     box_h = int(POSTER_HEIGHT * 0.13)
@@ -288,25 +332,25 @@ def create_poster(match, bg_path, font_path, output_path):
 
     if team_a_name:
         box_a = [left_center_x - (box_w // 2), box_top, left_center_x + (box_w // 2), box_bottom]
-        overlay_draw.rounded_rectangle(box_a, radius=14, fill=grey_bg)
+        overlay_draw.rounded_rectangle(box_a, radius=box_radius, fill=grey_bg)
 
     if team_b_name:
         box_b = [right_center_x - (box_w // 2), box_top, right_center_x + (box_w // 2), box_bottom]
-        overlay_draw.rounded_rectangle(box_b, radius=14, fill=grey_bg)
+        overlay_draw.rounded_rectangle(box_b, radius=box_radius, fill=grey_bg)
 
     bg = Image.alpha_composite(bg, overlay)
     draw = ImageDraw.Draw(bg)
 
-    team_max_w = box_w - 40
+    team_max_w = box_w - box_pad
     team_start_size = int(POSTER_HEIGHT * 0.105)
 
     if team_a_name:
-        font_a = fit_font_to_width(draw, team_a_name, font_path, team_start_size, team_max_w, stroke_width=3)
-        draw_text_centered_xy(draw, team_a_name, left_center_x, box_center_y, font_a, stroke_width=3)
+        font_a = fit_font_to_width(draw, team_a_name, font_path, team_start_size, team_max_w, stroke_width=stroke_w)
+        draw_text_centered_xy(draw, team_a_name, left_center_x, box_center_y, font_a, stroke_width=stroke_w)
 
     if team_b_name:
-        font_b = fit_font_to_width(draw, team_b_name, font_path, team_start_size, team_max_w, stroke_width=3)
-        draw_text_centered_xy(draw, team_b_name, right_center_x, box_center_y, font_b, stroke_width=3)
+        font_b = fit_font_to_width(draw, team_b_name, font_path, team_start_size, team_max_w, stroke_width=stroke_w)
+        draw_text_centered_xy(draw, team_b_name, right_center_x, box_center_y, font_b, stroke_width=stroke_w)
 
     save_compressed_png(bg, output_path, max_kb=250)
 
