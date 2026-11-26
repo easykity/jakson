@@ -13,3 +13,13 @@ https://multiregion-asia-cdn.tapmad.com/v1/01a154de56151ea540a81c2b41b77a/01a154
 https://in-mc-vod.fancode.com/mumbai/4249028_english_hls_0cb4703b5963817_1ta-di_h264/index.m3u8
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/3939.png" group-title="Football", New Zealand U17 vs Belgium U17 PlayZ TV Live
 https://live3979.zundrixmediapipeline.com/live/channel16.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/3941.png" group-title="Football", Jamaica U17 vs Côte d'Ivoire U17 HD STREAM
+https://live3979.zundrixmediapipeline.com/live/channel18.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/3942.png" group-title="Football", Uzbekistan U17 vs Italy U17 D Sports ES - AQ
+#KODIPROP:inputstream=inputstream.adaptive
+#KODIPROP:inputstream.adaptive.manifest_type=mpd
+#KODIPROP:inputstream.adaptive.license_type=clearkey
+#KODIPROP:inputstream.adaptive.license_key=83f81c4cc1443991543de4e22eea7586:ddfd7ca653d6f35543d8edb3c688e20f
+https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/dash/enc/ud6bnhthpj/out/v1/2639a2f4480f4269953de466d5f46463/cenc.mpd
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/3942.png" group-title="Football", Uzbekistan U17 vs Italy U17 HD STREAM
+https://live3979.zundrixmediapipeline.com/live/channel12.m3u8
