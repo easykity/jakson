@@ -17,7 +17,7 @@ JSON_URL = (os.environ.get("KSA_SERVER1") or "").strip()
 ASSET_DIR = "ASSET"
 POSTERS_DIR = "posters"
 PLAYLIST_FILE = "LiveEVENT.m3u"
-TEMPLATE_VERSION = "v4"  # ডিজাইন আপডেট হলে ভার্সন বদলালে সব পোস্টার নতুন করে তৈরি হবে
+TEMPLATE_VERSION = "v5"  # ডিজাইন আপডেট হলে ভার্সন বদলালে সব পোস্টার নতুন করে তৈরি হবে
 
 # পোস্টারের সাইজ
 POSTER_WIDTH = 1280
@@ -261,7 +261,7 @@ def create_poster(match, bg_path, font_path, output_path):
 
     overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
     overlay_draw = ImageDraw.Draw(overlay)
-    grey_bg_50 = (80, 80, 80, 128)  # গ্রে কালার ও ৫০% অপাসিটি (128/255)
+    grey_bg_50 = (25, 25, 25, 190)  # গ্রে কালার ও ৫০% অপাসিটি (128/255)
 
     if team_a_name:
         box_a = [left_center_x - (box_w // 2), box_top, left_center_x + (box_w // 2), box_bottom]
