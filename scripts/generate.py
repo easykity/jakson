@@ -17,7 +17,7 @@ JSON_URL = (os.environ.get("KSA_SERVER1") or "").strip()
 ASSET_DIR = "ASSET"
 POSTERS_DIR = "posters"
 PLAYLIST_FILE = "LiveEVENT.m3u"
-TEMPLATE_VERSION = "v3"  # ডিজাইন আপডেট হলে ভার্সন বদলালে সব পোস্টার নতুন করে তৈরি হবে
+TEMPLATE_VERSION = "v4"  # ডিজাইন আপডেট হলে ভার্সন বদলালে সব পোস্টার নতুন করে তৈরি হবে
 
 # পোস্টারের সাইজ
 POSTER_WIDTH = 1280
@@ -133,7 +133,6 @@ def download_image(url):
 
 
 def crop_transparent(img):
-    """লোগোর চারপাশের বাড়তি স্বচ্ছ ফাঁকা অংশ কেটে মূল অরিজিনাল অনুপাত ধরে রাখে"""
     if img is None:
         return None
     bbox = img.getbbox()
@@ -143,7 +142,6 @@ def crop_transparent(img):
 
 
 def scale_to_fit(img, target_w, target_h):
-    """অরিজিনাল অনুপাত (16:9 বা 1:1) ঠিক রেখে লোগোকে সুন্দরভাবে বড়/ছোট করে"""
     if img is None:
         return None
     img = crop_transparent(img)
@@ -159,7 +157,16 @@ def scale_to_fit(img, target_w, target_h):
 def draw_text_centered_at(draw, text, center_x, y, font, fill="white", stroke_fill="black", stroke_width=3):
     bbox = draw.textbbox((0, 0), text, font=font, stroke_width=stroke_width)
     text_w = bbox[2] - bbox[0]
-    x = center_x - (text_w // 2)
+    x = center_x - (text_w // 2) - bbox[0]
+    draw.text((x, y), text, font=font, fill=fill, stroke_width=stroke_width, stroke_fill=stroke_fill)
+
+
+def draw_text_centered_xy(draw, text, center_x, center_y, font, fill="white", stroke_fill="black", stroke_width=3):
+    bbox = draw.textbbox((0, 0), text, font=font, stroke_width=stroke_width)
+    text_w = bbox[2] - bbox[0]
+    text_h = bbox[3] - bbox[1]
+    x = center_x - (text_w // 2) - bbox[0]
+    y = center_y - (text_h // 2) - bbox[1]
     draw.text((x, y), text, font=font, fill=fill, stroke_width=stroke_width, stroke_fill=stroke_fill)
 
 
@@ -187,18 +194,18 @@ def create_poster(match, bg_path, font_path, output_path):
     bg = ImageOps.fit(bg, (POSTER_WIDTH, POSTER_HEIGHT), Image.Resampling.LANCZOS)
 
     event = match.get("event") or {}
-    tourney_name = (event.get("name") or "").strip().upper()
-    team_a_name = (event.get("teamA") or "").strip().upper()
-    team_b_name = (event.get("teamB") or "").strip().upper()
+    tourney_name = (event.get("name") or "").replace("\n", " ").strip().upper()
+    team_a_name = (event.get("teamA") or "").replace("\n", " ").strip().upper()
+    team_b_name = (event.get("teamB") or "").replace("\n", " ").strip().upper()
 
-    # ২. টুর্নামেন্টের logo আগের চেয়ে বড় সাইজ
+    # ১ নং: টুর্নামেন্টের logo আরও বড় করা হয়েছে
     tourney_logo = scale_to_fit(
         download_image(event.get("logo")),
-        int(POSTER_WIDTH * 0.20),
-        int(POSTER_HEIGHT * 0.19),
+        int(POSTER_WIDTH * 0.21),
+        int(POSTER_HEIGHT * 0.24),
     )
 
-    # ১. TeamA ও TeamB এর লোগো আরও বড় (16:9 বা 1:1 অরিজিনাল অনুপাতে থাকবে)
+    # TeamA ও TeamB লোগো
     team_a_flag = scale_to_fit(
         download_image(event.get("teamAFlag")),
         int(POSTER_WIDTH * 0.34),
@@ -212,23 +219,23 @@ def create_poster(match, bg_path, font_path, output_path):
 
     draw = ImageDraw.Draw(bg)
 
-    # ৪. উপরে টুর্নামেন্টের নাম (আরও বড় ও চিকন আউটলাইন)
+    # উপরে টুর্নামেন্টের নাম (আরও বড় সাইজ)
     if tourney_name:
         font_tourney = fit_font_to_width(
             draw, tourney_name, font_path,
-            int(POSTER_HEIGHT * 0.082), int(POSTER_WIDTH * 0.92), stroke_width=3
+            int(POSTER_HEIGHT * 0.095), int(POSTER_WIDTH * 0.94), stroke_width=3
         )
-        draw_text_centered_at(draw, tourney_name, POSTER_WIDTH // 2, int(POSTER_HEIGHT * 0.032), font_tourney, stroke_width=3)
+        draw_text_centered_at(draw, tourney_name, POSTER_WIDTH // 2, int(POSTER_HEIGHT * 0.025), font_tourney, stroke_width=3)
 
-    # টুর্নামেন্টের লোগো মাঝে
+    # ১ নং: টুর্নামেন্টের লোগো বড় করে আরও নিচে নামানো হয়েছে
     if tourney_logo:
         lx = (POSTER_WIDTH - tourney_logo.width) // 2
-        ly = int(POSTER_HEIGHT * 0.135)
+        ly = int(POSTER_HEIGHT * 0.175)
         bg.paste(tourney_logo, (lx, ly), tourney_logo)
 
-    # দুই দলের লোগো ও টেক্সটের কেন্দ্রবিন্দু
-    left_center_x = int(POSTER_WIDTH * 0.23)
-    right_center_x = int(POSTER_WIDTH * 0.77)
+    # দুই দলের লোগো ও নামের কেন্দ্রবিন্দু
+    left_center_x = int(POSTER_WIDTH * 0.24)
+    right_center_x = int(POSTER_WIDTH * 0.76)
     logo_center_y = int(POSTER_HEIGHT * 0.52)
 
     if team_a_flag:
@@ -241,24 +248,43 @@ def create_poster(match, bg_path, font_path, output_path):
         by = logo_center_y - (team_b_flag.height // 2)
         bg.paste(team_b_flag, (bx, by), team_b_flag)
 
-    # মাঝখানে VS (চিকন আউটলাইনসহ)
-    font_vs = load_font(font_path, int(POSTER_HEIGHT * 0.095))
-    vs_bbox = draw.textbbox((0, 0), "VS", font=font_vs, stroke_width=3)
-    vs_h = vs_bbox[3] - vs_bbox[1]
-    draw_text_centered_at(draw, "VS", POSTER_WIDTH // 2, logo_center_y - (vs_h // 2), font_vs, fill="#FFD700", stroke_width=3)
+    # মাঝখানে VS (আরও বড় করা হয়েছে)
+    font_vs = load_font(font_path, int(POSTER_HEIGHT * 0.125))
+    draw_text_centered_xy(draw, "VS", POSTER_WIDTH // 2, int(POSTER_HEIGHT * 0.545), font_vs, fill="#FFD700", stroke_width=3)
 
-    # ৩. নিচে সরাসরি TeamA ও TeamB নাম (VS ছাড়া, নিজ নিজ লোগো বরাবর সেন্টার, বড় ফন্ট ও চিকন বর্ডার)
-    team_name_y = int(POSTER_HEIGHT * 0.785)
-    team_max_w = int(POSTER_WIDTH * 0.42)
-    team_start_size = int(POSTER_HEIGHT * 0.092)
+    # ২ ও ৩ নং: ৫০% অপাসিটির গ্রে ব্যাকগ্রাউন্ড বক্স (rgba(80, 80, 80, 128))
+    box_w = int(POSTER_WIDTH * 0.43)
+    box_h = int(POSTER_HEIGHT * 0.13)
+    box_center_y = int(POSTER_HEIGHT * 0.84)
+    box_top = box_center_y - (box_h // 2)
+    box_bottom = box_center_y + (box_h // 2)
+
+    overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
+    overlay_draw = ImageDraw.Draw(overlay)
+    grey_bg_50 = (80, 80, 80, 128)  # গ্রে কালার ও ৫০% অপাসিটি (128/255)
+
+    if team_a_name:
+        box_a = [left_center_x - (box_w // 2), box_top, left_center_x + (box_w // 2), box_bottom]
+        overlay_draw.rounded_rectangle(box_a, radius=14, fill=grey_bg_50)
+
+    if team_b_name:
+        box_b = [right_center_x - (box_w // 2), box_top, right_center_x + (box_w // 2), box_bottom]
+        overlay_draw.rounded_rectangle(box_b, radius=14, fill=grey_bg_50)
+
+    bg = Image.alpha_composite(bg, overlay)
+    draw = ImageDraw.Draw(bg)
+
+    # ২ ও ৩ নং: টিম A ও B-এর নাম (১ লাইনে, আরেকটু বড় সাইজে, বক্সের ঠিক মাঝখানে)
+    team_max_w = box_w - 40
+    team_start_size = int(POSTER_HEIGHT * 0.105)
 
     if team_a_name:
         font_a = fit_font_to_width(draw, team_a_name, font_path, team_start_size, team_max_w, stroke_width=3)
-        draw_text_centered_at(draw, team_a_name, left_center_x, team_name_y, font_a, stroke_width=3)
+        draw_text_centered_xy(draw, team_a_name, left_center_x, box_center_y, font_a, stroke_width=3)
 
     if team_b_name:
         font_b = fit_font_to_width(draw, team_b_name, font_path, team_start_size, team_max_w, stroke_width=3)
-        draw_text_centered_at(draw, team_b_name, right_center_x, team_name_y, font_b, stroke_width=3)
+        draw_text_centered_xy(draw, team_b_name, right_center_x, box_center_y, font_b, stroke_width=3)
 
     bg.convert("RGB").save(output_path, "PNG", optimize=True)
     print(f"পোস্টার তৈরি হয়েছে: {output_path}")
@@ -320,7 +346,6 @@ def main():
                 os.remove(old_path)
                 print(f"পুরোনো পোস্টার ডিলিট করা হয়েছে: {old_path}")
 
-    # ৫. category বা cat যেকোনোটি থেকেই ক্যাটাগরি নিয়ে সর্টিং
     sorted_matches = sorted(
         active_matches,
         key=lambda m: category_priority(get_match_category(m))
