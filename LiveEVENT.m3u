@@ -31,3 +31,17 @@ https://live3979.zundrixmediapipeline.com/live/channel18.m3u8
 https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/dash/enc/ud6bnhthpj/out/v1/2639a2f4480f4269953de466d5f46463/cenc.mpd
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/3942.png" group-title="Football", Uzbekistan U17 vs Italy U17 HD STREAM
 https://live3979.zundrixmediapipeline.com/live/channel12.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/3943.png" group-title="Football", China U17 vs Fiji U17 HD STREAM
+https://live3979.zundrixmediapipeline.com/live/channel17.m3u8
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/3944.png" group-title="Football", Morocco U17 vs Spain U17 TSN SPORTS - AQ
+#KODIPROP:inputstream=inputstream.adaptive
+#KODIPROP:inputstream.adaptive.manifest_type=mpd
+#KODIPROP:inputstream.adaptive.license_type=clearkey
+#KODIPROP:inputstream.adaptive.license_key=385ceb9714b75e0cef61254f80b31002:18dce92a2891fee68d21ede5173230f8
+https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/cscevwljkq/out/v1/972185041b244140860b7d56398e9aaf/cenc.mpd
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/easykity/jakson/main/posters/3944.png" group-title="Football", Morocco U17 vs Spain U17 D Sports ES - AQ
+#KODIPROP:inputstream=inputstream.adaptive
+#KODIPROP:inputstream.adaptive.manifest_type=mpd
+#KODIPROP:inputstream.adaptive.license_type=clearkey
+#KODIPROP:inputstream.adaptive.license_key=f836853d8eac19446ed9535f5fc568b1:b3bc5ef00602b29abac7e482d3d9fbf3
+https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/dash/enc/z5oyxzsxdk/out/v1/7695a0f64a0e424b973d5b09a2a3eb91/cenc.mpd
